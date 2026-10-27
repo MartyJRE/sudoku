@@ -274,7 +274,7 @@ private fun NumberPad(state: UiState, onDigit: (Int) -> Unit) {
 }
 
 @Composable
-private fun SolvedOverlay(seconds: Long, hints: Int, difficulty: String, onNewGame: () -> Unit, onBack: () -> Unit) {
+internal fun SolvedOverlay(seconds: Long, hints: Int, difficulty: String, onNewGame: () -> Unit, onBack: () -> Unit) {
     Box(
         Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.35f)).clickable(enabled = false) {},
         contentAlignment = Alignment.Center,

@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,65 +22,79 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.github.martyjre.sudoku.cats.catsBoardSize
 import io.github.martyjre.sudoku.engine.Difficulty
-import io.github.martyjre.sudoku.game.GameState
-import io.github.martyjre.sudoku.storage.Stats
+import io.github.martyjre.sudoku.storage.GameKind
+import io.github.martyjre.sudoku.storage.GameRecord
+
+/** What the Continue button shows for a game in progress. */
+data class SavedGameInfo(val difficulty: Difficulty, val elapsedSeconds: Long)
 
 @Composable
 fun HomeScreen(
-    saved: GameState?,
-    stats: Stats,
-    onContinue: () -> Unit,
-    onNewGame: (Difficulty) -> Unit,
+    history: List<GameRecord>,
+    savedSudoku: SavedGameInfo?,
+    savedCats: SavedGameInfo?,
+    onContinue: (GameKind) -> Unit,
+    onNewGame: (GameKind, Difficulty) -> Unit,
+    onStats: () -> Unit,
 ) {
-    val colors = MaterialTheme.colorScheme
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("Sudoku", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.SemiBold)
-        Text("Unlimited puzzles. No ads.", color = colors.onSurfaceVariant)
-        Spacer(Modifier.height(32.dp))
+        Text("Puzzles", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.SemiBold)
+        Text("Unlimited. No ads.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(24.dp))
 
-        if (saved != null) {
-            Button(onClick = onContinue, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                Text("Continue · ${saved.puzzle.difficulty.label} · ${formatTime(saved.elapsedSeconds)}")
-            }
-            Spacer(Modifier.height(24.dp))
+        GameSection(GameKind.SUDOKU, history, savedSudoku, onContinue, onNewGame) { it.label }
+        Spacer(Modifier.height(28.dp))
+        GameSection(GameKind.CATS, history, savedCats, onContinue, onNewGame) {
+            val n = catsBoardSize(it)
+            "${it.label} · $n×$n"
         }
-
-        Text(
-            "New game",
-            style = MaterialTheme.typography.titleSmall,
-            color = colors.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            for (difficulty in Difficulty.entries) {
-                DifficultyRow(difficulty, stats, onClick = { onNewGame(difficulty) })
-            }
-        }
+        Spacer(Modifier.height(28.dp))
+        OutlinedButton(onClick = onStats, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Stats") }
     }
 }
 
 @Composable
-private fun DifficultyRow(difficulty: Difficulty, stats: Stats, onClick: () -> Unit) {
-    val s = stats[difficulty]
-    val summary = buildList {
-        add(if (s.won == 1) "1 solved" else "${s.won} solved")
-        s.bestSeconds?.let { add("best ${formatTime(it)}") }
-        s.averageSeconds?.let { add("avg ${formatTime(it)}") }
-    }.joinToString(" · ")
-
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-    ) {
-        Row(Modifier.padding(horizontal = 20.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(difficulty.label, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-            Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun GameSection(
+    kind: GameKind,
+    history: List<GameRecord>,
+    saved: SavedGameInfo?,
+    onContinue: (GameKind) -> Unit,
+    onNewGame: (GameKind, Difficulty) -> Unit,
+    label: (Difficulty) -> String,
+) {
+    Text(
+        kind.label,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+    )
+    if (saved != null) {
+        Button(onClick = { onContinue(kind) }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+            Text("Continue · ${saved.difficulty.label} · ${formatTime(saved.elapsedSeconds)}")
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        for (difficulty in Difficulty.entries) {
+            val games = history.filter { it.kind == kind && it.difficulty == difficulty }
+            val summary = buildList {
+                add("${games.size} solved")
+                games.minOfOrNull { it.seconds }?.let { add("best ${formatTime(it)}") }
+            }.joinToString(" · ")
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                tonalElevation = 1.dp,
+                modifier = Modifier.fillMaxWidth().clickable { onNewGame(kind, difficulty) },
+            ) {
+                Row(Modifier.padding(horizontal = 20.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(label(difficulty), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         }
     }
 }

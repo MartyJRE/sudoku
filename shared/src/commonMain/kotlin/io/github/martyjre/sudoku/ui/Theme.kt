@@ -23,6 +23,11 @@ data class BoardColors(
     val peer: Color,
     val sameDigit: Color,
     val conflict: Color,
+    val regions: List<Color>,
+    val catInk: Color,
+    val xMark: Color,
+    val chartSeries: Color,
+    val chartGrid: Color,
 )
 
 private val LightBoard = BoardColors(
@@ -37,6 +42,14 @@ private val LightBoard = BoardColors(
     peer = Color(0xFFF2EFE8),
     sameDigit = Color(0xFFDDE4FF),
     conflict = Color(0xFFF9DCD9),
+    regions = listOf(
+        0xFFF4A6A6, 0xFFF7C59F, 0xFFF3DF7E, 0xFFB5DDA4, 0xFF97D5C8,
+        0xFFA7C7F2, 0xFFC3B1F0, 0xFFF2B3D9, 0xFFD9C2A7, 0xFFC4CCD6,
+    ).map(::Color),
+    catInk = Color(0xFF2B2A27),
+    xMark = Color(0x8C2B2A27),
+    chartSeries = Color(0xFF3550C8),
+    chartGrid = Color(0xFFE6E1D7),
 )
 
 private val DarkBoard = BoardColors(
@@ -51,6 +64,14 @@ private val DarkBoard = BoardColors(
     peer = Color(0xFF252933),
     sameDigit = Color(0xFF2C365A),
     conflict = Color(0xFF4A2523),
+    regions = listOf(
+        0xFF8A4A4A, 0xFF8C5E3C, 0xFF857735, 0xFF4E7A44, 0xFF3E7A6E,
+        0xFF47658F, 0xFF64548F, 0xFF8A4C72, 0xFF75624C, 0xFF56606B,
+    ).map(::Color),
+    catInk = Color(0xFFF2F2F2),
+    xMark = Color(0x8CF2F2F2),
+    chartSeries = Color(0xFF6F86F0),
+    chartGrid = Color(0xFF2C303A),
 )
 
 val LocalBoardColors = staticCompositionLocalOf { LightBoard }

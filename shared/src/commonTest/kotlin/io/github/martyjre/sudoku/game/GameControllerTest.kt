@@ -3,7 +3,6 @@ package io.github.martyjre.sudoku.game
 import com.russhwolf.settings.MapSettings
 import io.github.martyjre.sudoku.engine.Difficulty
 import io.github.martyjre.sudoku.engine.Generator
-import io.github.martyjre.sudoku.storage.Stats
 import io.github.martyjre.sudoku.storage.Storage
 import kotlin.random.Random
 import kotlin.test.Test
@@ -115,16 +114,12 @@ class GameControllerTest {
     }
 
     @Test
-    fun gameAndStatsRoundTripThroughStorage() {
+    fun gameRoundTripsThroughStorage() {
         val storage = Storage(MapSettings())
-        val game = GameState(puzzle).copy(elapsedSeconds = 42)
-        storage.saveGame(game)
-        assertEquals(game, storage.loadGame())
-
-        val stats = Stats().started(Difficulty.EASY).won(Difficulty.EASY, 300).won(Difficulty.EASY, 200)
-        storage.saveStats(stats)
-        val easy = storage.loadStats()[Difficulty.EASY]
-        assertEquals(200, easy.bestSeconds)
-        assertEquals(250, easy.averageSeconds)
+        val game = GameState(puzzle).copy(elapsedSeconds = 42, autoCandidates = true)
+        storage.saveSudoku(game)
+        assertEquals(game, storage.loadSudoku())
+        storage.saveSudoku(null)
+        assertEquals(null, storage.loadSudoku())
     }
 }
